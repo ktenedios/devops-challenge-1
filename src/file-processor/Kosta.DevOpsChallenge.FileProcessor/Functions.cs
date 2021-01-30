@@ -49,7 +49,8 @@ namespace Kosta.DevOpsChallenge.FileProcessor
                 return;
             }
 
-            if (!pt.IsValid())
+            var validationResult = pt.ValidateObject();
+            if (validationResult != ValidationResultTypeEnum.Success)
             {
                 logger.LogError(invalidProductTransmissionFileErrorMessage);
                 return;

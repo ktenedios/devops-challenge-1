@@ -7,12 +7,29 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Models
         public Product[] products { get; set; }
         public TransmissionSummary transmissionsummary { get; set; }
 
-        public bool IsValid()
+        public ValidationResultTypeEnum ValidateObject()
         {
-            return products?.Length > 0 &&
-                (transmissionsummary != null) &&
-                DoRecordCountsMatch() &&
-                DoQuantitiesMatch();
+            if (products == null || products.Length == 0)
+            {
+                return ValidationResultTypeEnum.FailedMissingProducts;
+            }
+
+            if (transmissionsummary == null)
+            {
+                return ValidationResultTypeEnum.FailedMissingTransmissionSummary;
+            }
+
+            if (!DoRecordCountsMatch())
+            {
+                return ValidationResultTypeEnum.FailedIncorrectRecordCount;
+            }
+
+            if (!DoQuantitiesMatch())
+            {
+                return ValidationResultTypeEnum.FailedIncorrectQtySum;
+            }
+
+            return ValidationResultTypeEnum.Success;
         }
 
         private bool DoRecordCountsMatch()
