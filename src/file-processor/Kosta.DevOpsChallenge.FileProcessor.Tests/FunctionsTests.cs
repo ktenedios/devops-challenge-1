@@ -98,5 +98,95 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
                 mockLogger.VerifyLogErrorWasCalled("File 'MissingTransmissionSummary.json' is not a valid ProductTransmission file");
             }
         }
+
+        [Fact]
+        public void ProcessFile_SuppliedFileHasMismatchedNumberOfRecords_LogsInvalidProductTransmissionFileError()
+        {
+            // Arrange
+            var mockLogger = new Mock<ILogger<Functions>>();
+
+            var product1 = new {
+                sku = "6200354",
+                description = "Bosch Blue 800W Professional Corded Rotary Drill With 6 Piece Accessory Kit",
+                category = "Our Range > Tools > Power Tools > Drills > Rotary Hammer Drills",
+                price = 349,
+                location = "Artarmon",
+                qty = 10
+            };
+
+            var product2 = new {
+                sku = "7200354",
+                description = "Bosch Blue 900W Professional Corded Rotary Drill With 8 Piece Accessory Kit",
+                category = "Our Range > Tools > Power Tools > Drills > Rotary Hammer Drills",
+                price = 549,
+                location = "Oakleigh",
+                qty = 15
+            };
+
+            var data = new {
+                products = new object[] { product1, product2 },
+                transmissionsummary = new {
+                    id = Guid.NewGuid(),
+                    recordcount = 6,
+                    qtysum = 25
+                }
+            };
+
+            var serializedData = JsonSerializer.Serialize(data);
+
+            using (var invalidJsonBlob = TestExtensions.GetStreamFromString(serializedData))
+            {
+                // Act
+                Functions.ProcessFile(invalidJsonBlob, "MismatchedNumberOfRecords.json", mockLogger.Object);
+
+                // Assert
+                mockLogger.VerifyLogErrorWasCalled("File 'MismatchedNumberOfRecords.json' is not a valid ProductTransmission file");
+            }
+        }
+
+        [Fact]
+        public void ProcessFile_SuppliedFileHasMismatchedQuantities_LogsInvalidProductTransmissionFileError()
+        {
+            // Arrange
+            var mockLogger = new Mock<ILogger<Functions>>();
+
+            var product1 = new {
+                sku = "6200354",
+                description = "Bosch Blue 800W Professional Corded Rotary Drill With 6 Piece Accessory Kit",
+                category = "Our Range > Tools > Power Tools > Drills > Rotary Hammer Drills",
+                price = 349,
+                location = "Artarmon",
+                qty = 10
+            };
+
+            var product2 = new {
+                sku = "7200354",
+                description = "Bosch Blue 900W Professional Corded Rotary Drill With 8 Piece Accessory Kit",
+                category = "Our Range > Tools > Power Tools > Drills > Rotary Hammer Drills",
+                price = 549,
+                location = "Oakleigh",
+                qty = 15
+            };
+
+            var data = new {
+                products = new object[] { product1, product2 },
+                transmissionsummary = new {
+                    id = Guid.NewGuid(),
+                    recordcount = 2,
+                    qtysum = 20
+                }
+            };
+
+            var serializedData = JsonSerializer.Serialize(data);
+
+            using (var invalidJsonBlob = TestExtensions.GetStreamFromString(serializedData))
+            {
+                // Act
+                Functions.ProcessFile(invalidJsonBlob, "MismatchedQuantities.json", mockLogger.Object);
+
+                // Assert
+                mockLogger.VerifyLogErrorWasCalled("File 'MismatchedQuantities.json' is not a valid ProductTransmission file");
+            }
+        }
     }
 }
