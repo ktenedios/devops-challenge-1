@@ -19,6 +19,7 @@ namespace Kosta.DevOpsChallenge.FileProcessor
 
         public static void ProcessFile(
             [BlobTrigger("file-drop/{name}")] Stream blobContents,
+            [Blob("successful-files/{name}")] Stream successfulBlobContents,
             string name,
             ILogger logger)
         {
@@ -28,6 +29,7 @@ namespace Kosta.DevOpsChallenge.FileProcessor
                 return;
             }
 
+            string blobContentsAsString = null;
             ProductTransmission pt = null;
             var invalidProductTransmissionFileErrorMessage = $"File '{name}' is not a valid ProductTransmission file";
 
@@ -37,7 +39,7 @@ namespace Kosta.DevOpsChallenge.FileProcessor
                 {
                     // Important to set stream's position to 0 to deserialize entire contents
                     blobContents.Position = 0;
-                    var blobContentsAsString = sr.ReadToEnd();
+                    blobContentsAsString = sr.ReadToEnd();
                     pt = JsonSerializer.Deserialize<ProductTransmission>(blobContentsAsString);
                 }
             }
@@ -52,6 +54,11 @@ namespace Kosta.DevOpsChallenge.FileProcessor
                 logger.LogError(invalidProductTransmissionFileErrorMessage);
                 return;
             }
+
+            // Copy file to container that stores successfully processed files
+            var encoding = new UTF8Encoding();
+            var bytes = encoding.GetBytes(blobContentsAsString);
+            successfulBlobContents.Write(bytes, 0, bytes.Length);
         }
     }
 }

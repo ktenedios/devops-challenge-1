@@ -36,5 +36,33 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
             stream.Flush();
             return stream;
         }
+
+        public static bool StreamMatchesStringContent(this string originalString, Stream compareToStream)
+        {
+            var encoding = new UTF8Encoding();
+            var originalBytes = encoding.GetBytes(originalString);
+            var originalContentLength = originalBytes.Length;
+            var compareToStreamLength = Convert.ToInt32(compareToStream.Length);
+
+            if (originalContentLength != compareToStreamLength)
+            {
+                return false;
+            }
+
+            var compareToContent = new byte[compareToStreamLength];
+
+            compareToStream.Position = 0;
+            compareToStream.Read(compareToContent, 0, compareToStreamLength);
+
+            for (var byteCounter = 0; byteCounter < originalContentLength; byteCounter++)
+            {
+                if (originalBytes[byteCounter] != compareToContent[byteCounter])
+                {
+                    return false;
+                }
+            }
+
+            return true;
+        }
     }
 }
