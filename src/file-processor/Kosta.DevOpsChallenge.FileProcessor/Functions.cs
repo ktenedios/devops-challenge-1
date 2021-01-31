@@ -19,7 +19,7 @@ namespace Kosta.DevOpsChallenge.FileProcessor
 
         public static void ProcessFile(
             [BlobTrigger("file-drop/{name}")] Stream blobContents,
-            [Blob("successful-files/{name}")] Stream successfulBlobContents,
+            [Blob("successful-files/{name}", FileAccess.Write)] Stream successfulBlobContents,
             string name,
             ILogger logger)
         {
