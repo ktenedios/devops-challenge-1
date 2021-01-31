@@ -12,7 +12,7 @@ namespace Kosta.DevOpsChallenge.FileProcessor
     {
         public static void ProcessFile(
             [BlobTrigger("file-drop/{name}")] Stream blobContents,
-            [Blob("successful-files/{name}", FileAccess.Write)] Stream successfulBlobContents,
+            [Blob("processed-files/{name}", FileAccess.Write)] Stream processedBlobContents,
             string name,
             ILogger logger)
         {
@@ -52,7 +52,7 @@ namespace Kosta.DevOpsChallenge.FileProcessor
             // Copy file to container that stores successfully processed files
             var encoding = new UTF8Encoding();
             var bytes = encoding.GetBytes(blobContentsAsString);
-            successfulBlobContents.Write(bytes, 0, bytes.Length);
+            processedBlobContents.Write(bytes, 0, bytes.Length);
         }
     }
 }

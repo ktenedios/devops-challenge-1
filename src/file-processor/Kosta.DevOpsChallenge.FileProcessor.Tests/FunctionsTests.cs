@@ -16,11 +16,11 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
             // Arrange
             var mockLogger = new Mock<ILogger<Functions>>();
 
-            using (var successfulBlobContents = new MemoryStream())
+            using (var processedBlobContents = new MemoryStream())
             using (var emptyBlob = new MemoryStream(0))
             {
                 // Act
-                Functions.ProcessFile(emptyBlob, successfulBlobContents, "EmptyFile.json", mockLogger.Object);
+                Functions.ProcessFile(emptyBlob, processedBlobContents, "EmptyFile.json", mockLogger.Object);
 
                 // Assert
                 mockLogger.VerifyLogErrorWasCalled("File 'EmptyFile.json' is empty");
@@ -33,11 +33,11 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
             // Arrange
             var mockLogger = new Mock<ILogger<Functions>>();
 
-            using (var successfulBlobContents = new MemoryStream())
+            using (var processedBlobContents = new MemoryStream())
             using (var notJsonBlob = TestExtensions.GetStreamFromString("Not JSON content"))
             {
                 // Act
-                Functions.ProcessFile(notJsonBlob, successfulBlobContents, "NotJsonBlob.json", mockLogger.Object);
+                Functions.ProcessFile(notJsonBlob, processedBlobContents, "NotJsonBlob.json", mockLogger.Object);
 
                 // Assert
                 mockLogger.VerifyLogErrorWasCalled("File 'NotJsonBlob.json' is not a valid ProductTransmission file");
@@ -60,11 +60,11 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
 
             var serializedData = JsonSerializer.Serialize(data);
 
-            using (var successfulBlobContents = new MemoryStream())
+            using (var processedBlobContents = new MemoryStream())
             using (var invalidJsonBlob = TestExtensions.GetStreamFromString(serializedData))
             {
                 // Act
-                Functions.ProcessFile(invalidJsonBlob, successfulBlobContents, "MissingProducts.json", mockLogger.Object);
+                Functions.ProcessFile(invalidJsonBlob, processedBlobContents, "MissingProducts.json", mockLogger.Object);
 
                 // Assert
                 mockLogger.VerifyLogErrorWasCalled("File 'MissingProducts.json' is not a valid ProductTransmission file");
@@ -92,11 +92,11 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
 
             var serializedData = JsonSerializer.Serialize(data);
 
-            using (var successfulBlobContents = new MemoryStream())
+            using (var processedBlobContents = new MemoryStream())
             using (var invalidJsonBlob = TestExtensions.GetStreamFromString(serializedData))
             {
                 // Act
-                Functions.ProcessFile(invalidJsonBlob, successfulBlobContents, "MissingTransmissionSummary.json", mockLogger.Object);
+                Functions.ProcessFile(invalidJsonBlob, processedBlobContents, "MissingTransmissionSummary.json", mockLogger.Object);
 
                 // Assert
                 mockLogger.VerifyLogErrorWasCalled("File 'MissingTransmissionSummary.json' is not a valid ProductTransmission file");
@@ -138,11 +138,11 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
 
             var serializedData = JsonSerializer.Serialize(data);
 
-            using (var successfulBlobContents = new MemoryStream())
+            using (var processedBlobContents = new MemoryStream())
             using (var invalidJsonBlob = TestExtensions.GetStreamFromString(serializedData))
             {
                 // Act
-                Functions.ProcessFile(invalidJsonBlob, successfulBlobContents, "MismatchedNumberOfRecords.json", mockLogger.Object);
+                Functions.ProcessFile(invalidJsonBlob, processedBlobContents, "MismatchedNumberOfRecords.json", mockLogger.Object);
 
                 // Assert
                 mockLogger.VerifyLogErrorWasCalled("File 'MismatchedNumberOfRecords.json' is not a valid ProductTransmission file");
@@ -184,11 +184,11 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
 
             var serializedData = JsonSerializer.Serialize(data);
 
-            using (var successfulBlobContents = new MemoryStream())
+            using (var processedBlobContents = new MemoryStream())
             using (var invalidJsonBlob = TestExtensions.GetStreamFromString(serializedData))
             {
                 // Act
-                Functions.ProcessFile(invalidJsonBlob, successfulBlobContents, "MismatchedQuantities.json", mockLogger.Object);
+                Functions.ProcessFile(invalidJsonBlob, processedBlobContents, "MismatchedQuantities.json", mockLogger.Object);
 
                 // Assert
                 mockLogger.VerifyLogErrorWasCalled("File 'MismatchedQuantities.json' is not a valid ProductTransmission file");
@@ -230,14 +230,14 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
 
             var serializedData = JsonSerializer.Serialize(data);
 
-            using (var successfulBlobContents = new MemoryStream())
+            using (var processedBlobContents = new MemoryStream())
             using (var validJsonBlob = TestExtensions.GetStreamFromString(serializedData))
             {
                 // Act
-                Functions.ProcessFile(validJsonBlob, successfulBlobContents, "ValidFile.json", mockLogger.Object);
+                Functions.ProcessFile(validJsonBlob, processedBlobContents, "ValidFile.json", mockLogger.Object);
 
                 // Assert
-                var isMatch = serializedData.StreamMatchesStringContent(successfulBlobContents);
+                var isMatch = serializedData.StreamMatchesStringContent(processedBlobContents);
                 Assert.True(isMatch);
             }
         }
