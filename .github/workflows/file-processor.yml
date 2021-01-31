@@ -6,6 +6,7 @@ on:
     - master
     paths:
     - 'src/file-processor/**'
+    - '.github/workflows/file-processor.yml'
 
 jobs:
   build:
