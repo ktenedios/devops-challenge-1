@@ -10,13 +10,6 @@ namespace Kosta.DevOpsChallenge.FileProcessor
 {
     public class Functions
     {
-        public static void ProcessQueueMessage(
-            [QueueTrigger("message-queue")] string message,
-            ILogger logger)
-        {
-            logger.LogInformation(message);
-        }
-
         public static void ProcessFile(
             [BlobTrigger("file-drop/{name}")] Stream blobContents,
             [Blob("successful-files/{name}", FileAccess.Write)] Stream successfulBlobContents,
