@@ -29,3 +29,14 @@ jobs:
     - name: Test
       run: dotnet test --configuration Release --no-build --verbosity normal
       working-directory: ${{env.working-directory}}
+    - name: Publish
+      run: dotnet publish --configuration Release --no-build
+      working-directory: ${{env.working-directory}}
+    - name: Archive production artifacts
+      uses: actions/upload-artifact@v2
+      with:
+        name: file-processor-artifacts
+        path: |
+          Kosta.DevOpsChallenge.FileProcessor/bin/Release/netcoreapp3.1/publish
+          !Kosta.DevOpsChallenge.FileProcessor/bin/Release/netcoreapp3.1/publish/**/*.pdb
+
