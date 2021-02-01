@@ -36,8 +36,7 @@ jobs:
       uses: actions/upload-artifact@v2
       with:
         name: file-processor-artifacts
-        working-directory: ${{env.working-directory}}
         path: |
-          Kosta.DevOpsChallenge.FileProcessor/bin/Release/netcoreapp3.1/publish
-          !Kosta.DevOpsChallenge.FileProcessor/bin/Release/netcoreapp3.1/publish/**/*.pdb
+          ${{env.working-directory}}/Kosta.DevOpsChallenge.FileProcessor/bin/Release/netcoreapp3.1/publish
+          !${{env.working-directory}}/Kosta.DevOpsChallenge.FileProcessor/bin/Release/netcoreapp3.1/publish/**/*.pdb
 
