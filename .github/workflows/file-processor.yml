@@ -48,4 +48,4 @@ jobs:
         registry: ${{ secrets.registry }}
         repository: ${{ secrets.repository }}
         image: file-processor
-        folder: ${{env.working-directory}}
+        dockerfile: ${{env.working-directory}}/Dockerfile
