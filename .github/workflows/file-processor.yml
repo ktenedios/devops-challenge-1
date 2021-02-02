@@ -11,7 +11,6 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    environment: file-processor-docker-registry
     env:
       working-directory: './src/file-processor'
 
@@ -48,4 +47,4 @@ jobs:
         tenant: ${{ secrets.tenant }}
         registry: ${{ secrets.registry }}
         repository: ${{ secrets.repository }}
-        image: "file-processor"
+        image: file-processor
