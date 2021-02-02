@@ -41,7 +41,7 @@ jobs:
           ${{env.working-directory}}/Kosta.DevOpsChallenge.FileProcessor/bin/Release/netcoreapp3.1/publish
     - name: Build and push docker container to Azure Container Registry
       id: acr
-      uses: ams0/acr-task-github-action@v1
+      uses: ams0/acr-task-github-action@v2
       with:
         service_principal: ${{ secrets.service_principal }}
         service_principal_password: ${{ secrets.service_principal_password }}
