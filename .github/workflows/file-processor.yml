@@ -45,9 +45,9 @@ jobs:
     - name: Build and push docker container to Azure Container Registry
       uses: azure/CLI@v1
       with:
-        azclientversion: 2.18.0
+        azcliversion: 2.18.0
         inlinescript: |
           cd ${{env.working-directory}}
           git_hash=$(git rev-parse --short "$GITHUB_SHA")
-          az acr login --name ${{ secrets.registry }}
+          az acr login --name ${{ secrets.registry }} --expose-token
           az acr build . -r ${{ secrets.registry }} --image "${{ secrets.repository }}/file-processor:latest" -t "${{ secrets.repository }}/file-processor:$git_hash"
