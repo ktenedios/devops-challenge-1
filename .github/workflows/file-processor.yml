@@ -48,4 +48,4 @@ jobs:
         tenant: ${{ secrets.tenant }}
         registry: ${{ secrets.registry }}
         repository: ${{ secrets.repository }}
-        image: file-processor
+        image: "file-processor"
