@@ -11,6 +11,7 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
+    environment: file-processor-docker-registry
     env:
       working-directory: './src/file-processor'
 
@@ -38,5 +39,13 @@ jobs:
         name: file-processor-artifacts
         path: |
           ${{env.working-directory}}/Kosta.DevOpsChallenge.FileProcessor/bin/Release/netcoreapp3.1/publish
-          !${{env.working-directory}}/Kosta.DevOpsChallenge.FileProcessor/bin/Release/netcoreapp3.1/publish/**/*.pdb
-
+    - name: Build and push docker container to Azure Container Registry
+      id: acr
+      uses: ams0/acr-task-github-action@v1
+      with:
+        service_principal: ${{ secrets.service_principal }}
+        service_principal_password: ${{ secrets.service_principal_password }}
+        tenant: ${{ secrets.tenant }}
+        registry: ${{ secrets.registry }}
+        repository: ${{ secrets.repository }}
+        image: file-processor
