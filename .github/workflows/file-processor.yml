@@ -48,4 +48,5 @@ jobs:
         registry: ${{ secrets.registry }}
         repository: ${{ secrets.repository }}
         image: file-processor
-        dockerfile: ${{env.working-directory}}/Dockerfile
+        folder: ${{env.working-directory}}
+        dockerfile: Dockerfile
