@@ -1,0 +1,93 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "variables": {
+    "containerName": "warehouse-db",
+    "containerImage": "mcr.microsoft.com/mssql/server:2019-latest",
+    "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+  },
+  "parameters": {
+    "containerInstanceName":{
+      "type": "string",
+      "metadata": {
+        "description": "Name to assign to Azure Container Instance"
+      }
+    },
+    "containerDnsName": {
+      "type": "string",
+      "metadata": {
+        "description": "DNS name to assign to the Azure Container Instance"
+      }
+    },
+    "storageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of Azure Storage Account containing the file share"
+      }
+    },
+    "sqlServerSaPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "The password to the SQL Server SA account"
+      }
+    }
+  },
+  "resources": [
+    {
+      "name": "[parameters('containerInstanceName')]",
+      "type": "Microsoft.ContainerInstance/containerGroups",
+      "apiVersion": "2019-12-01",
+      "location": "[resourceGroup().location]",
+      "properties": {
+        "containers": [
+          {
+            "name": "[variables('containerName')]",
+            "properties": {
+              "image": "[variables('containerImage')]",
+              "resources": {
+                "requests": {
+                  "cpu": 1,
+                  "memoryInGb": 3.5
+                }
+              },
+              "ports": [
+                {
+                  "port": 1433
+                }
+              ],
+              "environmentVariables": [
+                {
+                  "name": "ACCEPT_EULA",
+                  "value": "Y"
+                },
+                {
+                  "name": "SA_PASSWORD",
+                  "secureValue": "[parameters('sqlServerSaPassword')]"
+                },
+                {
+                  "name": "MSSQL_PID",
+                  "value": "Developer"
+                },
+                {
+                  "name": "MSSQL_COLLATION",
+                  "value": "Latin1_General_CI_AS"
+                }
+              ]
+            }
+          }
+        ],
+        "osType": "Linux",
+        "ipAddress": {
+          "type": "Public",
+          "ports": [
+            {
+              "protocol": "tcp",
+              "port": "1433"
+            }
+          ],
+          "dnsNameLabel": "[parameters('containerDnsName')]"
+        }
+      }
+    }
+  ]
+}
