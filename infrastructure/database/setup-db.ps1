@@ -26,6 +26,15 @@ param (
 )
 
 $ErrorActionPreference = "Stop"
+
+# Need to install the SqlServer module if it does not already exist
+$sqlServerModule = Get-Module -Name SqlServer -ListAvailable
+
+if (-not $sqlServerModule) {
+    Write-Host "PowerShell module SqlServer not found, installing..."
+    Install-Module -Name SqlServer -AcceptLicense -Force
+}
+
 Import-Module SqlServer
 
 $saCredential = New-Object -TypeName PSCredential -ArgumentList "sa", $SaPassword
