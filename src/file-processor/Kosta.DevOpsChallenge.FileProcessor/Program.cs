@@ -18,6 +18,7 @@ namespace Kosta.DevOpsChallenge.FileProcessor
             builder.ConfigureLogging((context, b) =>
             {
                 b.AddConsole();
+                b.AddApplicationInsightsWebJobs();
             });
 
             var host = builder.Build();
