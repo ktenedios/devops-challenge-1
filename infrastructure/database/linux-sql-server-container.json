@@ -4,10 +4,22 @@
   "variables": {
     "containerName": "warehouse-db",
     "containerImage": "mcr.microsoft.com/mssql/server:2019-latest",
-    "storageAccountId": "[resourceId('Microsoft.Storage/storageAccounts', parameters('storageAccountName'))]"
+    "containerInstanceName": "[concat(parameters('environment'), '-', parameters('containerInstanceName'))]",
+    "containerDnsName": "[concat(parameters('environment'), '-', parameters('containerDnsName'))]"
   },
   "parameters": {
-    "containerInstanceName":{
+    "environment": {
+      "type": "string",
+      "allowedValues": [
+        "dev",
+        "ci",
+        "prd"
+      ],
+      "metadata": {
+        "description": "Short string denoting environment to deploy to"
+      }
+    },
+    "containerInstanceName": {
       "type": "string",
       "metadata": {
         "description": "Name to assign to Azure Container Instance"
@@ -19,22 +31,16 @@
         "description": "DNS name to assign to the Azure Container Instance"
       }
     },
-    "storageAccountName": {
-      "type": "string",
-      "metadata": {
-        "description": "Name of Azure Storage Account containing the file share"
-      }
-    },
     "sqlServerSaPassword": {
       "type": "securestring",
       "metadata": {
-        "description": "The password to the SQL Server SA account"
+        "description": "The password to assign to the SQL Server SA account"
       }
     }
   },
   "resources": [
     {
-      "name": "[parameters('containerInstanceName')]",
+      "name": "[variables('containerInstanceName')]",
       "type": "Microsoft.ContainerInstance/containerGroups",
       "apiVersion": "2019-12-01",
       "location": "[resourceGroup().location]",
@@ -85,9 +91,19 @@
               "port": "1433"
             }
           ],
-          "dnsNameLabel": "[parameters('containerDnsName')]"
+          "dnsNameLabel": "[variables('containerDnsName')]"
         }
       }
     }
-  ]
+  ],
+  "outputs": {
+    "containerIPAddressFqdn": {
+      "type": "string",
+      "value": "[reference(resourceId('Microsoft.ContainerInstance/containerGroups/', variables('containerInstanceName'))).ipAddress.fqdn]"
+    },
+    "containerInstanceName": {
+      "type": "string",
+      "value": "[variables('containerInstanceName')]"
+    }
+  }
 }
