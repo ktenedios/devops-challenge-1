@@ -1,0 +1,123 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "variables": {
+    "containerName": "file-processor",
+    "containerImage": "devopschallenge.azurecr.io/devops-challenge-containers/file-processor:latest",
+    "containerInstanceName": "[concat(parameters('environment'), '-', parameters('containerInstanceName'))]",
+    "appInsightsName": "[concat(parameters('environment'), '-', parameters('containerInstanceName'), '-appinsights')]"
+  },
+  "parameters": {
+    "environment": {
+      "type": "string",
+      "allowedValues": [
+        "dev",
+        "ci",
+        "prd"
+      ],
+      "metadata": {
+        "description": "Short string denoting environment to deploy to"
+      }
+    },
+    "containerInstanceName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name to assign to Azure Container Instance"
+      }
+    },
+    "storageAccountConnectionString": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Connection string to the storage account the File Processor application will read files from"
+      }
+    },
+    "imageRegistryLoginServer": {
+      "type": "string",
+      "metadata": {
+        "description": "FQDN of Azure Container Registry containing the File Processor docker image"
+      },
+      "defaultValue": "devopschallenge.azurecr.io"
+    },
+    "imageRegistryUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Username of the account for pulling images from Azure Container Registry"
+      }
+    },
+    "imageRegistryPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password of the account for pulling images from Azure Container Registry"
+      }
+    }
+  },
+  "resources": [
+    {
+      "apiVersion": "2014-04-01",
+      "name": "[variables('appInsightsName')]",
+      "type": "Microsoft.Insights/components",
+      "location": "[resourceGroup().location]",
+      "tags": {
+        "[concat('hidden-link:', resourceGroup().id, '/providers/Microsoft.ContainerInstance/containerGroups/', variables('containerInstanceName'))]": "Resource",
+        "displayName": "AppInsightsComponent"
+      },
+      "properties": {
+        "applicationId": "[variables('appInsightsName')]"
+      }
+    },
+    {
+      "name": "[variables('containerInstanceName')]",
+      "type": "Microsoft.ContainerInstance/containerGroups",
+      "apiVersion": "2019-12-01",
+      "location": "[resourceGroup().location]",
+      "dependsOn": [
+        "[resourceId('microsoft.insights/components/', variables('appInsightsName'))]"
+      ],
+      "properties": {
+        "containers": [
+          {
+            "name": "[variables('containerName')]",
+            "properties": {
+              "image": "[variables('containerImage')]",
+              "resources": {
+                "requests": {
+                  "cpu": 1,
+                  "memoryInGb": 1
+                }
+              },
+              "ports": [
+                {
+                  "port": 443
+                }
+              ],
+              "environmentVariables": [
+                {
+                  "name": "AzureWebJobsStorage",
+                  "value": "[parameters('storageAccountConnectionString')]"
+                },
+                {
+                  "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
+                  "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsName'))).InstrumentationKey]"
+                }
+              ]
+            }
+          }
+        ],
+        "imageRegistryCredentials": [
+          {
+            "server": "[parameters('imageRegistryLoginServer')]",
+            "username": "[parameters('imageRegistryUsername')]",
+            "password": "[parameters('imageRegistryPassword')]"
+          }
+        ],
+        "osType": "Linux"
+      }
+    }
+  ],
+  "outputs": {
+    "appInsightsResourceId": {
+      "type": "string",
+      "value": "[resourceId('microsoft.insights/components/', variables('appInsightsName'))]"
+    }
+  }
+}
