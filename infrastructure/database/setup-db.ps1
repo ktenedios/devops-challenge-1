@@ -42,6 +42,7 @@ $saCredential = New-Object -TypeName PSCredential -ArgumentList "sa", $SaPasswor
 # Validate that the database server can be connected to
 Write-Host "Validating connection to SQL Server $($SqlServerInstance)..."
 
+$sleepSeconds = 10
 for ($connectionAttempt = 1; $connectionAttempt -le $MaximumConnectionValidationAttempts; $connectionAttempt++) {
     Get-SqlInstance -ServerInstance $SqlServerInstance -Credential $saCredential -ErrorAction SilentlyContinue -ErrorVariable validateConnectionError
 
