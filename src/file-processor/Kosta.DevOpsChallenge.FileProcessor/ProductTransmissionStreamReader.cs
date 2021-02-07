@@ -9,7 +9,8 @@ public class ProductTransmissionStreamReader : IProductTransmissionStreamReader
 {
     private static string CreateMessageWithValidationResult(string message, ValidationResultTypeEnum validationResult)
     {
-        return $"ValidationResult: {validationResult}, ErrorMessage: {message}";
+        var messageType = (validationResult == ValidationResultTypeEnum.Success) ? "Message" : "ErrorMessage";
+        return $"ValidationResult: {validationResult}, {messageType}: {message}";
     }
 
     public ProductTransmission ValidateStream(Stream incomingStream, string incomingFileName, ILogger logger)
