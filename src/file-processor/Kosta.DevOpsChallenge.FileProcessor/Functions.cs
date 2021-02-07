@@ -35,16 +35,24 @@ namespace Kosta.DevOpsChallenge.FileProcessor
             string name,
             ILogger logger)
         {
-            var productTransmission = _productTransmissionStreamReader.ValidateStream(blobContents, name, logger);
-            var blobContentsAsString = JsonSerializer.Serialize<ProductTransmission>(productTransmission);
+            try
+            {
+                var productTransmission = _productTransmissionStreamReader.ValidateStream(blobContents, name, logger);
+                var blobContentsAsString = JsonSerializer.Serialize<ProductTransmission>(productTransmission);
 
-            _warehouseService.UpdateWarehouse(productTransmission);
+                _warehouseService.UpdateWarehouse(productTransmission);
 
-            // All files that arrive in the file-drop container will exist in the processed-files container,
-            // but only successfully processed files will have a file size greater than 0 in the processed-filed container
-            var encoding = new UTF8Encoding();
-            var bytes = encoding.GetBytes(blobContentsAsString);
-            processedBlobContents.Write(bytes, 0, bytes.Length);
+                // All files that arrive in the file-drop container will exist in the processed-files container,
+                // but only successfully processed files will have a file size greater than 0 in the processed-filed container
+                var encoding = new UTF8Encoding();
+                var bytes = encoding.GetBytes(blobContentsAsString);
+                processedBlobContents.Write(bytes, 0, bytes.Length);
+            }
+            catch (ProductTransmissionFileValidationException validationException)
+            {
+                var warehouseReport = _warehouseService.GetWarehouseReport(name, validationException.ValidationResult);
+                logger.LogError(validationException, warehouseReport);
+            }
         }
     }
 }

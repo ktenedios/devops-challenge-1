@@ -18,7 +18,7 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
         [InlineData(ValidationResultTypeEnum.FailedJsonDeserialization)]
         [InlineData(ValidationResultTypeEnum.FailedMissingProducts)]
         [InlineData(ValidationResultTypeEnum.FailedMissingTransmissionSummary)]
-        public void ProcessFile_WhenFileValidatorThrowsException_ExceptionIsThrown_AndFileContentsNotCopiedToSuccessfulContainer(
+        public void ProcessFile_WhenProductTransmissionStreamReaderThrowsException_FileContentsNotCopiedToSuccessfulContainer(
             ValidationResultTypeEnum validationResult)
         {
             // Arrange
@@ -36,13 +36,102 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
 
             var sut = new Functions(mockProductTransmissionStreamReader.Object, mockWarehouseService.Object);
 
-            // Act and Assert
-            var thrownException = Assert.Throws<ProductTransmissionFileValidationException>(() =>
-                sut.ProcessFile(mockIncomingStream.Object, mockOutgoingStream.Object, "SomeFile.json", mockLogger.Object)
-            );
+            // Act
+            sut.ProcessFile(mockIncomingStream.Object, mockOutgoingStream.Object, "SomeFile.json", mockLogger.Object);
 
+            // Assert
             mockOutgoingStream.Verify(outgoingStream => outgoingStream.Write(It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
-            Assert.Equal(validationException, thrownException);
+        }
+
+        [Theory]
+        [InlineData(ValidationResultTypeEnum.FailedEmptyFile)]
+        [InlineData(ValidationResultTypeEnum.FailedIncorrectQtySum)]
+        [InlineData(ValidationResultTypeEnum.FailedIncorrectRecordCount)]
+        [InlineData(ValidationResultTypeEnum.FailedJsonDeserialization)]
+        [InlineData(ValidationResultTypeEnum.FailedMissingProducts)]
+        [InlineData(ValidationResultTypeEnum.FailedMissingTransmissionSummary)]
+        public void ProcessFile_WhenProductTransmissionStreamReaderThrowsException_GetWarehouseReportIsCalled_AndReportIsLoggedWithError(
+            ValidationResultTypeEnum validationResult)
+        {
+            // Arrange
+            var incomingFileName = "test-file.json";
+            var mockIncomingStream = new Mock<Stream>();
+            var mockOutgoingStream = new Mock<Stream>();
+            var mockLogger = new Mock<ILogger<Functions>>();
+            var validationException = new ProductTransmissionFileValidationException(It.IsAny<string>(), validationResult);
+
+            var mockProductTransmissionStreamReader = new Mock<IProductTransmissionStreamReader>();
+            mockProductTransmissionStreamReader
+                .Setup(fv => fv.ValidateStream(It.IsAny<Stream>(), incomingFileName, It.IsAny<ILogger>()))
+                .Throws(validationException);
+
+            var mockWarehouseService = new Mock<IWarehouseService>();
+            mockWarehouseService.Setup(ws => ws.GetWarehouseReport(incomingFileName, validationResult))
+                .Returns($"Report for file {incomingFileName}");
+
+            var sut = new Functions(mockProductTransmissionStreamReader.Object, mockWarehouseService.Object);
+
+            // Act
+            sut.ProcessFile(mockIncomingStream.Object, mockOutgoingStream.Object, incomingFileName, mockLogger.Object);
+
+            // Assert
+            mockWarehouseService.Verify(ws => ws.GetWarehouseReport(It.IsAny<string>(), validationResult), Times.Once);
+            mockLogger.VerifyLogWasCalled(LogLevel.Error, incomingFileName);
+        }
+
+        [Fact]
+        public void ProcessFile_FileContainsAlreadyProcessedTransmissionSummaryId_FileContentsCopiedToSuccessfulContainer()
+        {
+            // Arrange
+            var mockLogger = new Mock<ILogger<Functions>>();
+
+            var product1 = new Product {
+                sku = "6200354",
+                description = "Bosch Blue 800W Professional Corded Rotary Drill With 6 Piece Accessory Kit",
+                category = "Our Range > Tools > Power Tools > Drills > Rotary Hammer Drills",
+                price = 349,
+                location = "Artarmon",
+                qty = 10
+            };
+
+            var product2 = new Product {
+                sku = "7200354",
+                description = "Bosch Blue 900W Professional Corded Rotary Drill With 8 Piece Accessory Kit",
+                category = "Our Range > Tools > Power Tools > Drills > Rotary Hammer Drills",
+                price = 549,
+                location = "Oakleigh",
+                qty = 15
+            };
+
+            var data = new ProductTransmission {
+                products = new Product[] { product1, product2 },
+                transmissionsummary = new TransmissionSummary {
+                    id = Guid.NewGuid(),
+                    recordcount = 2,
+                    qtysum = 25
+                }
+            };
+
+            var serializedData = JsonSerializer.Serialize(data);
+            var mockProductTransmissionStreamReader = new Mock<IProductTransmissionStreamReader>();
+            mockProductTransmissionStreamReader
+                .Setup(fv => fv.ValidateStream(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<ILogger>()))
+                .Returns(data);
+
+            var mockWarehouseService = new Mock<IWarehouseService>();
+
+            var sut = new Functions(mockProductTransmissionStreamReader.Object, mockWarehouseService.Object);
+
+            using (var processedBlobContents = new MemoryStream())
+            using (var validJsonBlob = TestExtensions.GetStreamFromString(serializedData))
+            {
+                // Act
+                sut.ProcessFile(validJsonBlob, processedBlobContents, "SomeFile.json", mockLogger.Object);
+
+                // Assert
+                var isMatch = serializedData.StreamMatchesStringContent(processedBlobContents);
+                Assert.True(isMatch);
+            }
         }
 
         [Fact]

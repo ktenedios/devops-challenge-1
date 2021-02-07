@@ -89,5 +89,10 @@ namespace Kosta.DevOpsChallenge.FileProcessor
         {
             throw new NotImplementedException();
         }
+
+        public string GetWarehouseReport(string processedFileName, Kosta.DevOpsChallenge.FileProcessor.DtoModel.ValidationResultTypeEnum validationResult)
+        {
+            throw new NotImplementedException();
+        }
     }
 }
