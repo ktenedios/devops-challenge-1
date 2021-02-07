@@ -32,7 +32,9 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
                 .Setup(fv => fv.ValidateStream(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<ILogger>()))
                 .Throws(validationException);
 
-            var sut = new Functions(mockProductTransmissionStreamReader.Object);
+            var mockWarehouseService = new Mock<IWarehouseService>();
+
+            var sut = new Functions(mockProductTransmissionStreamReader.Object, mockWarehouseService.Object);
 
             // Act and Assert
             var thrownException = Assert.Throws<ProductTransmissionFileValidationException>(() =>
@@ -82,7 +84,9 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
                 .Setup(fv => fv.ValidateStream(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<ILogger>()))
                 .Returns(data);
 
-            var sut = new Functions(mockProductTransmissionStreamReader.Object);
+            var mockWarehouseService = new Mock<IWarehouseService>();
+
+            var sut = new Functions(mockProductTransmissionStreamReader.Object, mockWarehouseService.Object);
 
             using (var processedBlobContents = new MemoryStream())
             using (var validJsonBlob = TestExtensions.GetStreamFromString(serializedData))

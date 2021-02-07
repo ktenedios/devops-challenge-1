@@ -18,7 +18,8 @@ CREATE TABLE dbo.Category
 
     CONSTRAINT PK_Category_Id PRIMARY KEY CLUSTERED (Id),
     CONSTRAINT FK_ParentCategory_ChildCategory
-        FOREIGN KEY (ParentCategoryId) REFERENCES dbo.Category (Id)
+        FOREIGN KEY (ParentCategoryId) REFERENCES dbo.Category (Id),
+    CONSTRAINT UQ_Name UNIQUE (Name)
 );
 GO
 
