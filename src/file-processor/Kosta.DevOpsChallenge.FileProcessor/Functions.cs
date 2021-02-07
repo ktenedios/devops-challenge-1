@@ -52,6 +52,8 @@ namespace Kosta.DevOpsChallenge.FileProcessor
                 }
 
                 _warehouseService.UpdateWarehouse(productTransmission);
+                warehouseReport = _warehouseService.GetWarehouseReport(name, validationResult);
+                logger.LogInformation(warehouseReport);
 
                 // All files that arrive in the file-drop container will exist in the processed-files container,
                 // but only successfully processed files will have a file size greater than 0 in the processed-filed container

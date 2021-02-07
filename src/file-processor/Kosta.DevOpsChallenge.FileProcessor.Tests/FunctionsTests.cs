@@ -146,9 +146,11 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
         }
 
         [Fact]
-        public void ProcessFile_SuppliedFileIsValid_FileContentsCopiedToSuccessfulContainer()
+        public void ProcessFile_SuppliedFileIsValid_UpdateWarehouseIsCalled_AndGetWarehouseReportIsCalled_AndFileContentsCopiedToSuccessfulContainer()
         {
             // Arrange
+            var fileName = "success-file.json";
+            var validationResult = ValidationResultTypeEnum.Success;
             var mockLogger = new Mock<ILogger<Functions>>();
 
             var product1 = new Product {
@@ -181,10 +183,14 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
             var serializedData = JsonSerializer.Serialize(data);
             var mockProductTransmissionStreamReader = new Mock<IProductTransmissionStreamReader>();
             mockProductTransmissionStreamReader
-                .Setup(fv => fv.ValidateStream(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<ILogger>()))
+                .Setup(fv => fv.ValidateStream(It.IsAny<Stream>(), fileName, It.IsAny<ILogger>()))
                 .Returns(data);
 
             var mockWarehouseService = new Mock<IWarehouseService>();
+            mockWarehouseService.Setup(ws => ws.IsTransmissionSummaryIdAlreadyProcessed(data.transmissionsummary.id))
+                .Returns(false);
+            mockWarehouseService.Setup(ws => ws.GetWarehouseReport(fileName, validationResult))
+                .Returns($"Report for file {fileName}");
 
             var sut = new Functions(mockProductTransmissionStreamReader.Object, mockWarehouseService.Object);
 
@@ -192,9 +198,12 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
             using (var validJsonBlob = TestExtensions.GetStreamFromString(serializedData))
             {
                 // Act
-                sut.ProcessFile(validJsonBlob, processedBlobContents, "SomeFile.json", mockLogger.Object);
+                sut.ProcessFile(validJsonBlob, processedBlobContents, fileName, mockLogger.Object);
 
                 // Assert
+                mockWarehouseService.Verify(ws => ws.UpdateWarehouse(data), Times.Once);
+                mockWarehouseService.Verify(ws => ws.GetWarehouseReport(fileName, validationResult), Times.Once);
+                mockLogger.VerifyLogWasCalled(LogLevel.Information, fileName);
                 var isMatch = serializedData.StreamMatchesStringContent(processedBlobContents);
                 Assert.True(isMatch);
             }
