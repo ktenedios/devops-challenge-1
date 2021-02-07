@@ -1,4 +1,4 @@
-namespace Kosta.DevOpsChallenge.FileProcessor.Models
+namespace Kosta.DevOpsChallenge.FileProcessor.DtoModel
 {
     public class Product
     {

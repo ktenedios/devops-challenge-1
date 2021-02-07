@@ -1,5 +1,5 @@
 using System;
-using Kosta.DevOpsChallenge.FileProcessor.Models;
+using Kosta.DevOpsChallenge.FileProcessor.DtoModel;
 
 public class ProductTransmissionFileValidationException : Exception
 {

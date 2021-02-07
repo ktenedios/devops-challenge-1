@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 using System.Text.Json;
-using Kosta.DevOpsChallenge.FileProcessor.Models;
+using Kosta.DevOpsChallenge.FileProcessor.DtoModel;
 using Microsoft.Azure.WebJobs;
 using Microsoft.Extensions.Logging;
 

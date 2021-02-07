@@ -1,5 +1,5 @@
 using System.IO;
-using Kosta.DevOpsChallenge.FileProcessor.Models;
+using Kosta.DevOpsChallenge.FileProcessor.DtoModel;
 using Microsoft.Extensions.Logging;
 
 public interface IProductTransmissionStreamReader

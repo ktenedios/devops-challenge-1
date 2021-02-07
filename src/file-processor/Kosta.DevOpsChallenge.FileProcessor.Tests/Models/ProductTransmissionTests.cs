@@ -1,8 +1,8 @@
 using System;
-using Kosta.DevOpsChallenge.FileProcessor.Models;
+using Kosta.DevOpsChallenge.FileProcessor.DtoModel;
 using Xunit;
 
-namespace Kosta.DevOpsChallenge.FileProcessor.Tests.Models
+namespace Kosta.DevOpsChallenge.FileProcessor.Tests.DtoModel
 {
     public class ProductTransmissionTests
     {

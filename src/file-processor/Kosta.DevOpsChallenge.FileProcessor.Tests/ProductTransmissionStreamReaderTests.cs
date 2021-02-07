@@ -3,7 +3,7 @@ using System.IO;
 using System.Linq;
 using Xunit;
 using Kosta.DevOpsChallenge.FileProcessor;
-using Kosta.DevOpsChallenge.FileProcessor.Models;
+using Kosta.DevOpsChallenge.FileProcessor.DtoModel;
 using Moq;
 using Microsoft.Extensions.Logging;
 using System.Text.Json;
