@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
+using Kosta.DevOpsChallenge.FileProcessor.DtoModel;
 using Kosta.DevOpsChallenge.FileProcessor.WarehouseDb;
+using Product = Kosta.DevOpsChallenge.FileProcessor.WarehouseDb.Product;
 
 namespace Kosta.DevOpsChallenge.FileProcessor
 {
@@ -131,9 +134,48 @@ namespace Kosta.DevOpsChallenge.FileProcessor
             }
         }
 
-        public string GetWarehouseReport(string processedFileName, Kosta.DevOpsChallenge.FileProcessor.DtoModel.ValidationResultTypeEnum validationResult)
+        public string GetWarehouseReport(string processedFileName, ValidationResultTypeEnum validationResult)
         {
-            throw new NotImplementedException();
+            // The warehouse report is for an aggregate of level 3 categories
+            var level1Category = _dbContext.Categories.Single(c => c.ParentCategory == null);
+            var level2Categories = _dbContext.Categories.Where(c => c.ParentCategory == level1Category).ToList();
+            var level3Categories = _dbContext.Categories.Where(c => level2Categories.Contains(c.ParentCategory)).ToList();
+            var reportBuilder = new StringBuilder(validationResult.GetReportHeader(processedFileName));
+
+            foreach (var category in level3Categories)
+            {
+                var bottomMostCategories = GetBottomMostCategoriesForCategory(category);
+                var productsFromDb = _dbContext.Products.Where(p => bottomMostCategories.Contains(p.Category)).AsEnumerable().GroupBy(p => p.Location);
+
+                foreach (var grouping in productsFromDb)
+                {
+                    var location = grouping.Key;
+                    var qtySum = grouping.Sum(p => p.Qty);
+
+                    reportBuilder.AppendLine($"{category.Name} - {location} - {qtySum}");
+                }
+            }
+
+            return reportBuilder.ToString();
+        }
+
+        private List<Category> GetBottomMostCategoriesForCategory(Category parentCategory)
+        {
+            var lowestLevelCategories = new List<Category>();
+            var childCategories = _dbContext.Categories.Where(c => c.ParentCategory == parentCategory).ToList();
+
+            if (childCategories == null || childCategories.Count == 0)
+            {
+                lowestLevelCategories.Add(parentCategory);
+            }
+
+            foreach (var category in childCategories)
+            {
+                var grandChildCategories = GetBottomMostCategoriesForCategory(category);
+                lowestLevelCategories.AddRange(grandChildCategories);
+            }
+
+            return lowestLevelCategories;
         }
     }
 }

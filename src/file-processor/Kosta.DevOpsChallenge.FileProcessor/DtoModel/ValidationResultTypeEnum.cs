@@ -25,7 +25,7 @@ namespace Kosta.DevOpsChallenge.FileProcessor.DtoModel
                 return $"{headerFirstLine}\r\n{headerSuccessLine}";
             }
 
-            return $"{headerFirstLine}\r\n{headerErrorLine}";
+            return $"{headerFirstLine}\r\n{headerErrorLine}\r\n";
         }
     }
 }
