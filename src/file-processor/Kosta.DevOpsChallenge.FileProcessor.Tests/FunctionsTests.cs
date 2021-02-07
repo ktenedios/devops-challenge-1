@@ -80,9 +80,10 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
         }
 
         [Fact]
-        public void ProcessFile_FileContainsAlreadyProcessedTransmissionSummaryId_FileContentsCopiedToSuccessfulContainer()
+        public void ProcessFile_FileContainsAlreadyProcessedTransmissionSummaryId_GetWarehouseReportIsCalled_AndReportIsLoggedWithError()
         {
             // Arrange
+            var incomingFileName = "test-file.json";
             var mockLogger = new Mock<ILogger<Functions>>();
 
             var product1 = new Product {
@@ -112,13 +113,18 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
                 }
             };
 
+            var validationResult = ValidationResultTypeEnum.FailedAlreadyProcessedTransmissionSummaryId;
             var serializedData = JsonSerializer.Serialize(data);
             var mockProductTransmissionStreamReader = new Mock<IProductTransmissionStreamReader>();
             mockProductTransmissionStreamReader
-                .Setup(fv => fv.ValidateStream(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<ILogger>()))
+                .Setup(fv => fv.ValidateStream(It.IsAny<Stream>(), incomingFileName, It.IsAny<ILogger>()))
                 .Returns(data);
 
             var mockWarehouseService = new Mock<IWarehouseService>();
+            mockWarehouseService.Setup(ws => ws.IsTransmissionSummaryIdAlreadyProcessed(data.transmissionsummary.id))
+                .Returns(true);
+            mockWarehouseService.Setup(ws => ws.GetWarehouseReport(incomingFileName, validationResult))
+                .Returns($"Report for file {incomingFileName}");
 
             var sut = new Functions(mockProductTransmissionStreamReader.Object, mockWarehouseService.Object);
 
@@ -126,11 +132,15 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
             using (var validJsonBlob = TestExtensions.GetStreamFromString(serializedData))
             {
                 // Act
-                sut.ProcessFile(validJsonBlob, processedBlobContents, "SomeFile.json", mockLogger.Object);
+                sut.ProcessFile(validJsonBlob, processedBlobContents, incomingFileName, mockLogger.Object);
 
                 // Assert
+                mockWarehouseService.Verify(ws => ws.IsTransmissionSummaryIdAlreadyProcessed(data.transmissionsummary.id), Times.Once);
+                mockWarehouseService.Verify(ws => ws.GetWarehouseReport(incomingFileName, validationResult), Times.Once);
+                mockLogger.VerifyLogWasCalled(LogLevel.Error, incomingFileName);
+                mockWarehouseService.Verify(ws => ws.UpdateWarehouse(data), Times.Never());
                 var isMatch = serializedData.StreamMatchesStringContent(processedBlobContents);
-                Assert.True(isMatch);
+                Assert.False(isMatch);
             }
         }
 

@@ -35,10 +35,21 @@ namespace Kosta.DevOpsChallenge.FileProcessor
             string name,
             ILogger logger)
         {
+            string warehouseReport = null;
+            var validationResult = ValidationResultTypeEnum.Success;
+
             try
             {
                 var productTransmission = _productTransmissionStreamReader.ValidateStream(blobContents, name, logger);
                 var blobContentsAsString = JsonSerializer.Serialize<ProductTransmission>(productTransmission);
+
+                if (_warehouseService.IsTransmissionSummaryIdAlreadyProcessed(productTransmission.transmissionsummary.id))
+                {
+                    validationResult = ValidationResultTypeEnum.FailedAlreadyProcessedTransmissionSummaryId;
+                    warehouseReport = _warehouseService.GetWarehouseReport(name, validationResult);
+                    logger.LogError(warehouseReport);
+                    return;
+                }
 
                 _warehouseService.UpdateWarehouse(productTransmission);
 
@@ -50,7 +61,7 @@ namespace Kosta.DevOpsChallenge.FileProcessor
             }
             catch (ProductTransmissionFileValidationException validationException)
             {
-                var warehouseReport = _warehouseService.GetWarehouseReport(name, validationException.ValidationResult);
+                warehouseReport = _warehouseService.GetWarehouseReport(name, validationException.ValidationResult);
                 logger.LogError(validationException, warehouseReport);
             }
         }
