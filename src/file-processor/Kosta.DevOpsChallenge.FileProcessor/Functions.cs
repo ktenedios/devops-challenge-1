@@ -16,43 +16,12 @@ namespace Kosta.DevOpsChallenge.FileProcessor
             string name,
             ILogger logger)
         {
-            if (blobContents.Length == 0)
-            {
-                logger.LogError($"File '{name}' is empty");
-                return;
-            }
-
-            string blobContentsAsString = null;
-            ProductTransmission pt = null;
-            var invalidProductTransmissionFileErrorMessage = $"File '{name}' is not a valid ProductTransmission file";
-
-            try
-            {
-                using (var sr = new StreamReader(blobContents, Encoding.UTF8))
-                {
-                    // Important to set stream's position to 0 to deserialize entire contents
-                    blobContents.Position = 0;
-                    blobContentsAsString = sr.ReadToEnd();
-                    pt = JsonSerializer.Deserialize<ProductTransmission>(blobContentsAsString);
-                }
-            }
-            catch (Exception ex)
-            {
-                logger.LogError(ex, invalidProductTransmissionFileErrorMessage);
-                return;
-            }
-
-            var validationResult = pt.ValidateObject();
-            if (validationResult != ValidationResultTypeEnum.Success)
-            {
-                logger.LogError(invalidProductTransmissionFileErrorMessage);
-                return;
-            }
+            
 
             // Copy file to container that stores successfully processed files
-            var encoding = new UTF8Encoding();
+            /*var encoding = new UTF8Encoding();
             var bytes = encoding.GetBytes(blobContentsAsString);
-            processedBlobContents.Write(bytes, 0, bytes.Length);
+            processedBlobContents.Write(bytes, 0, bytes.Length);*/
         }
     }
 }

@@ -3,9 +3,11 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Models
     public enum ValidationResultTypeEnum
     {
         Success = 0,
-        FailedMissingProducts = 1,
-        FailedMissingTransmissionSummary = 2,
-        FailedIncorrectRecordCount = 3,
-        FailedIncorrectQtySum = 4
+        FailedEmptyFile = 1,
+        FailedJsonDeserialization = 2,
+        FailedMissingProducts = 3,
+        FailedMissingTransmissionSummary = 4,
+        FailedIncorrectRecordCount = 5,
+        FailedIncorrectQtySum = 6
     }
 }
