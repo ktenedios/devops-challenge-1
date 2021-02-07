@@ -24,7 +24,7 @@ namespace Kosta.DevOpsChallenge.FileProcessor
 
             builder.ConfigureServices((context, b) =>
             {
-                b.Add(new ServiceDescriptor(typeof(IProductTransmissionStreamReader), new ProductTransmissionStreamReader()));
+                b.AddScoped<IProductTransmissionStreamReader, ProductTransmissionStreamReader>();
             });
 
             var host = builder.Build();

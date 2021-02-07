@@ -27,13 +27,16 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
             var mockLogger = new Mock<ILogger<Functions>>();
             var validationException = new ProductTransmissionFileValidationException(It.IsAny<string>(), validationResult);
 
-            var mockFileValidator = new Mock<IProductTransmissionStreamReader>();
-            mockFileValidator.Setup(fv => fv.ValidateStream(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<ILogger>()))
-                             .Throws(validationException);
+            var mockProductTransmissionStreamReader = new Mock<IProductTransmissionStreamReader>();
+            mockProductTransmissionStreamReader
+                .Setup(fv => fv.ValidateStream(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<ILogger>()))
+                .Throws(validationException);
+
+            var sut = new Functions(mockProductTransmissionStreamReader.Object);
 
             // Act and Assert
             var thrownException = Assert.Throws<ProductTransmissionFileValidationException>(() =>
-                Functions.ProcessFile(mockIncomingStream.Object, mockOutgoingStream.Object, "SomeFile.json", mockLogger.Object, mockFileValidator.Object)
+                sut.ProcessFile(mockIncomingStream.Object, mockOutgoingStream.Object, "SomeFile.json", mockLogger.Object)
             );
 
             mockOutgoingStream.Verify(outgoingStream => outgoingStream.Write(It.IsAny<byte[]>(), It.IsAny<int>(), It.IsAny<int>()), Times.Never);
@@ -74,15 +77,18 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
             };
 
             var serializedData = JsonSerializer.Serialize(data);
-            var mockFileValidator = new Mock<IProductTransmissionStreamReader>();
-            mockFileValidator.Setup(fv => fv.ValidateStream(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<ILogger>()))
-                             .Returns(data);
+            var mockProductTransmissionStreamReader = new Mock<IProductTransmissionStreamReader>();
+            mockProductTransmissionStreamReader
+                .Setup(fv => fv.ValidateStream(It.IsAny<Stream>(), It.IsAny<string>(), It.IsAny<ILogger>()))
+                .Returns(data);
+
+            var sut = new Functions(mockProductTransmissionStreamReader.Object);
 
             using (var processedBlobContents = new MemoryStream())
             using (var validJsonBlob = TestExtensions.GetStreamFromString(serializedData))
             {
                 // Act
-                Functions.ProcessFile(validJsonBlob, processedBlobContents, "SomeFile.json", mockLogger.Object, mockFileValidator.Object);
+                sut.ProcessFile(validJsonBlob, processedBlobContents, "SomeFile.json", mockLogger.Object);
 
                 // Assert
                 var isMatch = serializedData.StreamMatchesStringContent(processedBlobContents);

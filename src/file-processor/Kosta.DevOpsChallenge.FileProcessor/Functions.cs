@@ -10,14 +10,25 @@ namespace Kosta.DevOpsChallenge.FileProcessor
 {
     public class Functions
     {
-        public static void ProcessFile(
+        private readonly IProductTransmissionStreamReader _productTransmissionStreamReader = null;
+
+        public Functions(IProductTransmissionStreamReader productTransmissionStreamReader)
+        {
+            if (productTransmissionStreamReader == null)
+            {
+                throw new ArgumentNullException(nameof(productTransmissionStreamReader));
+            }
+
+            _productTransmissionStreamReader = productTransmissionStreamReader;
+        }
+
+        public void ProcessFile(
             [BlobTrigger("file-drop/{name}")] Stream blobContents,
             [Blob("processed-files/{name}", FileAccess.Write)] Stream processedBlobContents,
             string name,
-            ILogger logger,
-            IProductTransmissionStreamReader fileValidator)
+            ILogger logger)
         {
-            var productTransmission = fileValidator.ValidateStream(blobContents, name, logger);
+            var productTransmission = _productTransmissionStreamReader.ValidateStream(blobContents, name, logger);
             var blobContentsAsString = JsonSerializer.Serialize<ProductTransmission>(productTransmission);
 
             // All files that arrive in the file-drop container will exist in the processed-files container,
