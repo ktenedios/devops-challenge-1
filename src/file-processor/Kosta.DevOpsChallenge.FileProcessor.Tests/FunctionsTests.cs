@@ -77,6 +77,7 @@ namespace Kosta.DevOpsChallenge.FileProcessor.Tests
             // Assert
             mockWarehouseService.Verify(ws => ws.GetWarehouseReport(It.IsAny<string>(), validationResult), Times.Once);
             mockLogger.VerifyLogWasCalled(LogLevel.Error, incomingFileName);
+            mockWarehouseService.Verify(ws => ws.UpdateWarehouse(It.IsAny<ProductTransmission>()), Times.Never);
         }
 
         [Fact]
