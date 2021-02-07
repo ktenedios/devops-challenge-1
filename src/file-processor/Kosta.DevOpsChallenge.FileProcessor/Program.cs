@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 
 namespace Kosta.DevOpsChallenge.FileProcessor
@@ -19,6 +20,11 @@ namespace Kosta.DevOpsChallenge.FileProcessor
             {
                 b.AddConsole();
                 b.AddApplicationInsightsWebJobs();
+            });
+
+            builder.ConfigureServices((context, b) =>
+            {
+                b.Add(new ServiceDescriptor(typeof(IProductTransmissionStreamReader), new ProductTransmissionStreamReader()));
             });
 
             var host = builder.Build();

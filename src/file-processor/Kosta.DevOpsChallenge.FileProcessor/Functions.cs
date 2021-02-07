@@ -14,14 +14,17 @@ namespace Kosta.DevOpsChallenge.FileProcessor
             [BlobTrigger("file-drop/{name}")] Stream blobContents,
             [Blob("processed-files/{name}", FileAccess.Write)] Stream processedBlobContents,
             string name,
-            ILogger logger)
+            ILogger logger,
+            IProductTransmissionStreamReader fileValidator)
         {
-            
+            var productTransmission = fileValidator.ValidateStream(blobContents, name, logger);
+            var blobContentsAsString = JsonSerializer.Serialize<ProductTransmission>(productTransmission);
 
-            // Copy file to container that stores successfully processed files
-            /*var encoding = new UTF8Encoding();
+            // All files that arrive in the file-drop container will exist in the processed-files container,
+            // but only successfully processed files will have a file size greater than 0 in the processed-filed container
+            var encoding = new UTF8Encoding();
             var bytes = encoding.GetBytes(blobContentsAsString);
-            processedBlobContents.Write(bytes, 0, bytes.Length);*/
+            processedBlobContents.Write(bytes, 0, bytes.Length);
         }
     }
 }

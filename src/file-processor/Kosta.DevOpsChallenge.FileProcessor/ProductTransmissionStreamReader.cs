@@ -5,20 +5,20 @@ using System.Text.Json;
 using Kosta.DevOpsChallenge.FileProcessor.Models;
 using Microsoft.Extensions.Logging;
 
-public class FileValidator : IFileValidator
+public class ProductTransmissionStreamReader : IProductTransmissionStreamReader
 {
     private static string CreateMessageWithValidationResult(string message, ValidationResultTypeEnum validationResult)
     {
         return $"ValidationResult: {validationResult}, ErrorMessage: {message}";
     }
 
-    public ValidationResultTypeEnum ValidateFile(Stream incomingStream, string incomingFileName, ILogger logger)
+    public ProductTransmission ValidateStream(Stream incomingStream, string incomingFileName, ILogger logger)
     {
         var validationResult = ValidationResultTypeEnum.FailedEmptyFile;
         if (incomingStream.Length == 0)
         {
             logger.LogError(CreateMessageWithValidationResult($"File '{incomingFileName}' is empty", validationResult));
-            return validationResult;
+            throw new ProductTransmissionFileValidationException(incomingFileName, validationResult);
         }
 
         string incomingStreamAsString = null;
@@ -39,16 +39,17 @@ public class FileValidator : IFileValidator
         catch (Exception ex)
         {
             logger.LogError(ex, CreateMessageWithValidationResult(invalidProductTransmissionFileErrorMessage, validationResult));
-            return validationResult;
+            throw new ProductTransmissionFileValidationException(incomingFileName, validationResult, ex);
         }
 
         validationResult = pt.ValidateObject();
         if (validationResult != ValidationResultTypeEnum.Success)
         {
             logger.LogError(CreateMessageWithValidationResult(invalidProductTransmissionFileErrorMessage, validationResult));
+            throw new ProductTransmissionFileValidationException(incomingFileName, validationResult);
         }
 
         logger.LogInformation(CreateMessageWithValidationResult($"File '{incomingFileName}' successfully validated", validationResult));
-        return validationResult;
+        return pt;
     }
 }
