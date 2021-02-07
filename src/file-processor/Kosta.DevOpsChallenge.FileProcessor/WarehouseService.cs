@@ -28,20 +28,33 @@ namespace Kosta.DevOpsChallenge.FileProcessor
         public void UpdateWarehouse(Kosta.DevOpsChallenge.FileProcessor.DtoModel.ProductTransmission productTransmission)
         {
             var productsToInsertInDb = new List<Product>();
-            var transmissionSummaryToInsertInDb = new Transmission();
 
             // Due to the way the database has been deployed, change tracking has not been enabled,
             // so need to manually track which records need to be added
             var categoriesFromDb = _dbContext.Categories.ToList();
             var originalCategoriesFromDb = new List<Category>(categoriesFromDb);
+            var productsFromDb = _dbContext.Products.ToList();
+            var originalProductsFromDb = new List<Product>(productsFromDb);
 
             foreach (var product in productTransmission.products)
             {
                 ProcessCategories(product, categoriesFromDb);
+                ProcessProduct(product, productsFromDb, categoriesFromDb);
             }
 
-            var categoriesToAddToDb = categoriesFromDb.Where(c => !originalCategoriesFromDb.Contains(c));
+            _dbContext.Transmissions.Add(new Transmission
+            {
+                Id = productTransmission.transmissionsummary.id,
+                ImportDate = DateTime.UtcNow
+            });
+
+            var categoriesToAddToDb = categoriesFromDb.Where(c => !originalCategoriesFromDb.Contains(c)).ToList();
+            var productsToAddToDb = productsFromDb.Where(p => !originalProductsFromDb.Contains(p)).ToList();
+            var productsToUpdateInDb = productsFromDb.Where(p => originalProductsFromDb.SingleOrDefault(op => op.Id == p.Id) != null).ToList();
+
             _dbContext.Categories.AddRange(categoriesToAddToDb);
+            _dbContext.Products.AddRange(productsToAddToDb);
+            _dbContext.Products.UpdateRange(productsToUpdateInDb);
             _dbContext.SaveChanges();
         }
 
@@ -85,9 +98,37 @@ namespace Kosta.DevOpsChallenge.FileProcessor
             }
         }
 
-        public IEnumerable<Product> GetProductInventoryForCategory(string categoryName)
+        private void ProcessProduct(Kosta.DevOpsChallenge.FileProcessor.DtoModel.Product productDto, List<Product> productsFromDb, List<Category> categoriesFromDb)
         {
-            throw new NotImplementedException();
+            var product = productsFromDb.SingleOrDefault(p =>
+                productDto.location == p.Location &&
+                productDto.sku == p.Sku
+            );
+
+            var categoryHierarchy = productDto.category.Split(" > ");
+            var targetCategoryName = categoryHierarchy[categoryHierarchy.Length - 1];
+            var targetCategory = categoriesFromDb.Single(c => c.Name == targetCategoryName);
+
+            if (product == null)
+            {
+                productsFromDb.Add(new Product
+                {
+                    Id = Guid.NewGuid(),
+                    Sku = productDto.sku,
+                    Description = productDto.description,
+                    Category = targetCategory,
+                    Price = productDto.price,
+                    Location = productDto.location,
+                    Qty = productDto.qty
+                });
+            }
+            else
+            {
+                product.Description = productDto.description;
+                product.Category = targetCategory;
+                product.Price = productDto.price;
+                product.Qty = productDto.qty;
+            }
         }
 
         public string GetWarehouseReport(string processedFileName, Kosta.DevOpsChallenge.FileProcessor.DtoModel.ValidationResultTypeEnum validationResult)
