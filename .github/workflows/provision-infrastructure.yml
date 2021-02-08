@@ -19,9 +19,14 @@ jobs:
     steps:
     - uses: actions/checkout@v2
     - name: Azure Login
-      uses: azure/login@v1
+      uses: azure/powershell@v1
       with:
-        creds: ${{ secrets.azure_credentials_for_aci }}
+        azPSVersion: 4.7.0
+        inlinescript: |
+          $ErrorActionPreference = "Stop"
+          $deployServicePrincipalPassword = ConvertTo-SecureString -String ${{ secrets.azure_deploy_sp_password }} -AsPlainText -Force
+          $deployCredential = New-Object -TypeName PSCredetial -ArgumentList ${{ secrets.azure_deploy_sp_appid }}, $deployServicePrincipalPassword
+          Connect-AzAccount -ServicePrincipal -Credential $deployCredential -Tenant ${{ secrets.azure_deploy_aad_tenant_id }}
     - name: Provision infrastructure and deploy application stack
       uses: azure/powershell@v1
       with:
@@ -30,6 +35,7 @@ jobs:
           $imageRegistryPassword = ConvertTo-SecureString -String ${{ secrets.image_registry_password }} -AsPlainText -Force
           $sqlServerSaPassword = ConvertTo-SecureString -String ${{ secrets.sql_server_sa_password }} -AsPlainText -Force
           $fileProcessorAppDbPassword = ConvertTo-SecureString -String ${{ secrets.file_processor_app_db_password }} -AsPlainText -Force
+
           Push-Location -Path ${{env.working-directory}}
           ./provision-environment.ps1 -Environment ci -FileProcessorContainerInstanceName file-processor `
             -FileProcessorStorageAccountName fileprocessorsa -ImageRegistryUsername ${{ secrets.image_registry_username }} `
@@ -49,10 +55,15 @@ jobs:
 
     steps:
     - uses: actions/checkout@v2
-    - name: Azure Login
-      uses: azure/login@v1
+    - name: Provision infrastructure and deploy application stack
+      uses: azure/powershell@v1
       with:
-        creds: ${{ secrets.azure_credentials_for_aci }}
+        azPSVersion: 4.7.0
+        inlinescript: |
+          $ErrorActionPreference = "Stop"
+          $deployServicePrincipalPassword = ConvertTo-SecureString -String ${{ secrets.azure_deploy_sp_password }} -AsPlainText -Force
+          $deployCredential = New-Object -TypeName PSCredetial -ArgumentList ${{ secrets.azure_deploy_sp_appid }}, $deployServicePrincipalPassword
+          Connect-AzAccount -ServicePrincipal -Credential $deployCredential -Tenant ${{ secrets.azure_deploy_aad_tenant_id }}
     - name: Provision infrastructure and deploy application stack
       uses: azure/powershell@v1
       with:
@@ -61,6 +72,7 @@ jobs:
           $imageRegistryPassword = ConvertTo-SecureString -String ${{ secrets.image_registry_password }} -AsPlainText -Force
           $sqlServerSaPassword = ConvertTo-SecureString -String ${{ secrets.sql_server_sa_password }} -AsPlainText -Force
           $fileProcessorAppDbPassword = ConvertTo-SecureString -String ${{ secrets.file_processor_app_db_password }} -AsPlainText -Force
+
           Push-Location -Path ${{env.working-directory}}
           ./provision-environment.ps1 -Environment prd -FileProcessorContainerInstanceName file-processor `
             -FileProcessorStorageAccountName fileprocessorsa -ImageRegistryUsername ${{ secrets.image_registry_username }} `
