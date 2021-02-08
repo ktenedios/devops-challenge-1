@@ -108,31 +108,6 @@ $mainTemplateFile = Join-Path -Path $PSScriptRoot -ChildPath "stack.json"
 $stackDeployResult = New-AzResourceGroupDeployment -ResourceGroupName $DeployToResourceGroupName -Name $deploymentName `
     -TemplateFile $mainTemplateFile -TemplateParameterObject $stackDeployParams
 
-# Need to check that the SQL Server in the database container has started
-Write-Host "Checking that SQL Server in container instance $($deployedDbContainerInstanceName) has started..." -ForegroundColor Green
-$deployedDbContainerInstanceName = $stackDeployResult.Outputs.databaseContainerInstanceName.value
-$deployedDbContainerName = $stackDeployResult.Outputs.databaseContainerName.value
-$endTime = (Get-Date).AddMinutes(5)
-$currentTime = Get-Date
-$serverStarted = $false
-
-while ($currentTime -le $endTime -and -not $serverStarted) {
-    $logs = Get-AzContainerInstanceLog -ResourceGroupName $DeployToResourceGroupName `
-        -ContainerGroupName $deployedDbContainerInstanceName -Name $deployedDbContainerName -Tail 100
-
-    if ($logs.Contains("SQL Server is now ready for client connections")) {
-        $serverStarted = $true
-    }
-    else {
-        Start-Sleep -Seconds 10
-        $currentTime = Get-Date
-    }
-}
-
-if (-not $serverStarted) {
-    Write-Error "SQL Server in container instance $($deployedDbContainerInstanceName) failed to start. Deployment has failed."
-}
-
 # Deploy the database schema and provision the login to be used by the application
 Write-Host "Deploying database schema and setting up application login in SQL Server container instance $($deployedDbContainerInstanceName)..." -ForegroundColor Green
 $sqlServerFqdn = $stackDeployResult.Outputs.databaseContainerIPAddressFqdn.value

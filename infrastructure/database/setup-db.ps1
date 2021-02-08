@@ -22,7 +22,7 @@ param (
 
     [Parameter(Mandatory = $false)]
     [ValidateScript({$_ -gt 0})]
-    [int]$MaximumConnectionValidationAttempts = 10
+    [int]$MaximumConnectionValidationAttempts = 100
 )
 
 $ErrorActionPreference = "Stop"
