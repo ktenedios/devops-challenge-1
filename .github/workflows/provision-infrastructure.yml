@@ -25,6 +25,7 @@ jobs:
     - name: Provision infrastructure and deploy application stack
       uses: azure/powershell@v1
       with:
+        azPSVersion: 4.7.0
         inlinescript: |
           $imageRegistryPassword = ConvertTo-SecureString -String ${{ secrets.image_registry_password }} -AsPlainText -Force
           $sqlServerSaPassword = ConvertTo-SecureString -String ${{ secrets.sql_server_sa_password }} -AsPlainText -Force
@@ -55,6 +56,7 @@ jobs:
     - name: Provision infrastructure and deploy application stack
       uses: azure/powershell@v1
       with:
+        azPSVersion: 4.7.0
         inlinescript: |
           $imageRegistryPassword = ConvertTo-SecureString -String ${{ secrets.image_registry_password }} -AsPlainText -Force
           $sqlServerSaPassword = ConvertTo-SecureString -String ${{ secrets.sql_server_sa_password }} -AsPlainText -Force
