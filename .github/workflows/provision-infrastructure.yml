@@ -1,0 +1,70 @@
+name: Provision environment
+
+on:
+  push:
+    branches:
+    - master
+    paths:
+    - 'infrastructure/**'
+    - '.github/workflows/provision-infrastructure.yml'
+
+jobs:
+  deploy_to_ci_environment:
+    runs-on: ubuntu-latest
+    env:
+      working-directory: './infrastructure'
+    environment:
+      ci
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.azure_credentials_for_aci }}
+    - name: Build and push docker container to Azure Container Registry
+      uses: azure/powershell@v1
+      with:
+        azPSVersion: 5.4.0
+        inlinescript: |
+          $imageRegistryPassword = ConvertTo-SecureString -String ${{ secrets.image_registry_password }} -AsPlainText -Force
+          $sqlServerSaPassword = ConvertTo-SecureString -String ${{ secrets.sql_server_sa_password }} -AsPlainText -Force
+          $fileProcessorAppDbPassword = ConvertTo-SecureString -String ${{ secrets.file_processor_app_db_password }} -AsPlainText -Force
+          Push-Location -Path ${{env.working-directory}}
+          ./provision-environment.ps1 -Environment ci -FileProcessorContainerInstanceName file-processor `
+            -FileProcessorStorageAccountName fileprocessorsa -ImageRegistryUsername ${{ secrets.image_registry_username }} `
+            -ImageRegistryPassword $imageRegistryPassword -WarehouseDbContainerInstanceName warehouse-db `
+            -WarehouseDbContainerDnsName warehouse-db -SqlServerSaPassword $sqlServerSaPassword `
+            -FileProcessorAppDbUsername ${{ secrets.file_processor_app_db_username }} -FileProcessorAppDbPassword $fileProcessorAppDbPassword `
+            -DeployToResourceGroupName ci-warehouse-rg -DeploymentsStorageAccountResourceGroupName ${{ secrets.storage_account_resource_group }} `
+            -DeploymentsStorageAccountName ${{ secrets.storage_account_name }} -DeploymentsStorageAccountContainer ${{ secrets.storage_account_container }}
+
+  deploy_to_prd_environment:
+    runs-on: ubuntu-latest
+    env:
+      working-directory: './infrastructure'
+    environment:
+      prd
+
+    steps:
+    - uses: actions/checkout@v2
+    - name: Azure Login
+      uses: azure/login@v1
+      with:
+        creds: ${{ secrets.azure_credentials_for_aci }}
+    - name: Build and push docker container to Azure Container Registry
+      uses: azure/powershell@v1
+      with:
+        azPSVersion: 5.4.0
+        inlinescript: |
+          $imageRegistryPassword = ConvertTo-SecureString -String ${{ secrets.image_registry_password }} -AsPlainText -Force
+          $sqlServerSaPassword = ConvertTo-SecureString -String ${{ secrets.sql_server_sa_password }} -AsPlainText -Force
+          $fileProcessorAppDbPassword = ConvertTo-SecureString -String ${{ secrets.file_processor_app_db_password }} -AsPlainText -Force
+          Push-Location -Path ${{env.working-directory}}
+          ./provision-environment.ps1 -Environment prd -FileProcessorContainerInstanceName file-processor `
+            -FileProcessorStorageAccountName fileprocessorsa -ImageRegistryUsername ${{ secrets.image_registry_username }} `
+            -ImageRegistryPassword $imageRegistryPassword -WarehouseDbContainerInstanceName warehouse-db `
+            -WarehouseDbContainerDnsName warehouse-db -SqlServerSaPassword $sqlServerSaPassword `
+            -FileProcessorAppDbUsername ${{ secrets.file_processor_app_db_username }} -FileProcessorAppDbPassword $fileProcessorAppDbPassword `
+            -DeployToResourceGroupName prd-warehouse-rg -DeploymentsStorageAccountResourceGroupName ${{ secrets.storage_account_resource_group }} `
+            -DeploymentsStorageAccountName ${{ secrets.storage_account_name }} -DeploymentsStorageAccountContainer ${{ secrets.storage_account_container }}

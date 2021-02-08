@@ -205,6 +205,18 @@
       "type": "string",
       "value": "[reference('warehouseDbAciDeployment').outputs.containerResourceId.value]"
     },
+    "databaseContainerInstanceName": {
+      "type": "string",
+      "value": "[reference('warehouseDbAciDeployment').outputs.containerInstanceName.value]"
+    },
+    "databaseContainerIPAddressFqdn": {
+      "type": "string",
+      "value": "[reference('warehouseDbAciDeployment').outputs.containerIPAddressFqdn.value]"
+    },
+    "databaseContainerName": {
+      "type": "string",
+      "value": "[reference('warehouseDbAciDeployment').outputs.containerName.value]"
+    },
     "fileProcessorContainerResourceId": {
       "type": "string",
       "value": "[reference('fileProcessorAciDeployment').outputs.containerResourceId.value]"
