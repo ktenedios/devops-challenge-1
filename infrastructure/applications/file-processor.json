@@ -49,6 +49,12 @@
       "metadata": {
         "description": "Password of the account for pulling images from Azure Container Registry"
       }
+    },
+    "warehouseDbConnectionString": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Connection string to the Warehouse database"
+      }
     }
   },
   "resources": [
@@ -98,6 +104,10 @@
                 {
                   "name": "APPINSIGHTS_INSTRUMENTATIONKEY",
                   "value": "[reference(concat('microsoft.insights/components/', variables('appInsightsName'))).InstrumentationKey]"
+                },
+                {
+                  "name": "WarehouseSqlConnectionString",
+                  "value": "[parameters('warehouseDbConnectionString')]"
                 }
               ]
             }
@@ -118,6 +128,10 @@
     "appInsightsResourceId": {
       "type": "string",
       "value": "[resourceId('microsoft.insights/components/', variables('appInsightsName'))]"
+    },
+    "containerResourceId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.ContainerInstance/containerGroups/', variables('containerInstanceName'))]"
     }
   }
 }

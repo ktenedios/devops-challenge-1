@@ -36,6 +36,18 @@
       "metadata": {
         "description": "The password to assign to the SQL Server SA account"
       }
+    },
+    "dbUsername": {
+      "type": "string",
+      "metadata": {
+        "description": "Username of the SQL login that is to be used by the File Processor application for connecting to the warehouse database"
+      }
+    },
+    "dbPassword": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Password of the SQL login that is to be used by the File Processor application for connecting to the warehouse database"
+      }
     }
   },
   "resources": [
@@ -104,6 +116,14 @@
     "containerInstanceName": {
       "type": "string",
       "value": "[variables('containerInstanceName')]"
+    },
+    "containerResourceId": {
+      "type": "string",
+      "value": "[resourceId('Microsoft.ContainerInstance/containerGroups/', variables('containerInstanceName'))]"
+    },
+    "dbConnectionString": {
+      "type": "securestring",
+      "value": "[concat('Server=', reference(resourceId('Microsoft.ContainerInstance/containerGroups/', variables('containerInstanceName'))).ipAddress.fqdn, ';Database=warehousedb;User ID=', parameters('dbUsername'), ';Password=', parameters('dbPassword'))]"
     }
   }
 }
