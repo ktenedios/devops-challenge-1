@@ -25,7 +25,7 @@ jobs:
         inlinescript: |
           $ErrorActionPreference = "Stop"
           $deployServicePrincipalPassword = ConvertTo-SecureString -String ${{ secrets.azure_deploy_sp_password }} -AsPlainText -Force
-          $deployCredential = New-Object -TypeName PSCredetial -ArgumentList ${{ secrets.azure_deploy_sp_appid }}, $deployServicePrincipalPassword
+          $deployCredential = New-Object -TypeName PSCredential -ArgumentList ${{ secrets.azure_deploy_sp_appid }}, $deployServicePrincipalPassword
           Connect-AzAccount -ServicePrincipal -Credential $deployCredential -Tenant ${{ secrets.azure_deploy_aad_tenant_id }}
     - name: Provision infrastructure and deploy application stack
       uses: azure/powershell@v1
@@ -62,7 +62,7 @@ jobs:
         inlinescript: |
           $ErrorActionPreference = "Stop"
           $deployServicePrincipalPassword = ConvertTo-SecureString -String ${{ secrets.azure_deploy_sp_password }} -AsPlainText -Force
-          $deployCredential = New-Object -TypeName PSCredetial -ArgumentList ${{ secrets.azure_deploy_sp_appid }}, $deployServicePrincipalPassword
+          $deployCredential = New-Object -TypeName PSCredential -ArgumentList ${{ secrets.azure_deploy_sp_appid }}, $deployServicePrincipalPassword
           Connect-AzAccount -ServicePrincipal -Credential $deployCredential -Tenant ${{ secrets.azure_deploy_aad_tenant_id }}
     - name: Provision infrastructure and deploy application stack
       uses: azure/powershell@v1
