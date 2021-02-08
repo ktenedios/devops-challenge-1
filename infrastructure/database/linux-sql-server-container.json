@@ -122,7 +122,7 @@
       "value": "[resourceId('Microsoft.ContainerInstance/containerGroups/', variables('containerInstanceName'))]"
     },
     "dbConnectionString": {
-      "type": "securestring",
+      "type": "string",
       "value": "[concat('Server=', reference(resourceId('Microsoft.ContainerInstance/containerGroups/', variables('containerInstanceName'))).ipAddress.fqdn, ';Database=warehousedb;User ID=', parameters('dbUsername'), ';Password=', parameters('dbPassword'))]"
     }
   }
