@@ -59,10 +59,24 @@ if ($validateConnectionError) {
     Write-Error "Cannot connect to SQL Server after $($MaximumConnectionValidationAttempts) attempts. Error: $($validateConnectionError)"
 }
 
-# Create SQL login for use by applications
-Write-Host "Creating SQL Server login $($AppDbUsername)..."
+# Check to see if the $AppDbUsername login already exists, and if not, create the login
 $appCredential = New-Object -TypeName PSCredential -ArgumentList $AppDbUsername, $AppDbPassword
-Add-SqlLogin -ServerInstance $SqlServerInstance -Credential $saCredential -LoginPSCredential $appCredential -LoginType SqlLogin -Enable -GrantConnectSql
+Get-SqlLogin -ServerInstance $SqlServerInstance -Credential $saCredential -LoginName $AppDbUsername -LoginType SqlLogin `
+             -ErrorAction SilentlyContinue -ErrorVariable getSqlLoginError
+
+if ($getSqlLoginError) {
+    if ($getSqlLoginError[0].Exception.Message -eq $AppDbUsername) {
+        Write-Host "Creating SQL Server login $($AppDbUsername)..."
+        Add-SqlLogin -ServerInstance $SqlServerInstance -Credential $saCredential -LoginPSCredential $appCredential `
+                     -LoginType SqlLogin -Enable -GrantConnectSql
+    }
+    else {
+        Write-Error $getSqlLoginError
+    }
+}
+else {
+    Write-Host "SQL Server login $($AppDbUsername) already exists"
+}
 
 # Create database and assign database user to the SQL login previously created
 Write-Host "Creating database $($AppDbName) and database user $($AppDbUsername)..."
@@ -73,7 +87,10 @@ $query = @"
     USE [$($AppDbName)];
     GO
 
-    CREATE USER [$($AppDbUsername)] FOR LOGIN [$($AppDbUsername)];
+    IF NOT EXISTS (SELECT [name] FROM [sys].[database_principals] WHERE [type] = N'S' AND [name] = N'$($AppDbUsername)')
+    BEGIN
+        CREATE USER [$($AppDbUsername)] FOR LOGIN [$($AppDbUsername)]
+    END;
     GO
 
     ALTER ROLE db_datareader ADD MEMBER [$($AppDbUsername)];
