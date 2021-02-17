@@ -124,6 +124,9 @@
       "type": "Microsoft.Resources/deployments",
       "apiVersion": "2020-06-01",
       "name": "warehouseDbAciDeployment",
+      "dependsOn": [
+        "[resourceId('Microsoft.Resources/deployments', 'fileProcessorStorageAccountDeployment')]"
+      ],
       "properties": {
         "mode": "Incremental",
         "templateLink": {
@@ -148,6 +151,15 @@
           },
           "dbPassword": {
             "value": "[parameters('fileProcessorAppDbPassword')]"
+          },
+          "fileShareStorageAccountName": {
+            "value": "[reference('fileProcessorStorageAccountDeployment').outputs.storageAccountName.value]"
+          },
+          "fileShareVolumeName": {
+            "value": "[reference('fileProcessorStorageAccountDeployment').outputs.fileShareVolumeName.value]"
+          },
+          "fileShareStorageAccountKey": {
+            "value": "[reference('fileProcessorStorageAccountDeployment').outputs.storageAccountKey.value]"
           }
         }
       }
@@ -220,6 +232,10 @@
     "fileProcessorContainerResourceId": {
       "type": "string",
       "value": "[reference('fileProcessorAciDeployment').outputs.containerResourceId.value]"
+    },
+    "databaseContainerFileShareVolumeMountPath": {
+      "type": "string",
+      "value": "[reference('warehouseDbAciDeployment').outputs.containerFileShareVolumeMountPath.value]"
     }
   }
 }

@@ -22,7 +22,8 @@
   },
   "variables": {
       "storageAccountName": "[concat(parameters('environment'), parameters('storageAccountName'))]",
-      "storageAccountServiceName": "[concat(variables('storageAccountName'), '/default')]"
+      "storageAccountServiceName": "[concat(variables('storageAccountName'), '/default')]",
+      "fileShareName": "databases"
   },
   "resources": [
     {
@@ -128,6 +129,15 @@
         "denyEncryptionScopeOverride": false,
         "publicAccess": "None"
       }
+    },
+    {
+      "type": "Microsoft.Storage/storageAccounts/fileServices/shares",
+      "apiVersion": "2019-06-01",
+      "name": "[concat(variables('storageAccountName'), '/default/', variables('fileShareName'))]",
+      "dependsOn": [
+        "[resourceId('Microsoft.Storage/storageAccounts/fileServices', variables('storageAccountName'), 'default')]",
+        "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+      ]
     }
   ],
   "outputs": {
@@ -138,6 +148,18 @@
     "storageAccountResourceId": {
       "type": "string",
       "value": "[resourceId('Microsoft.Storage/storageAccounts', variables('storageAccountName'))]"
+    },
+    "fileShareVolumeName": {
+      "type": "string",
+      "value": "[variables('fileShareName')]"
+    },
+    "storageAccountName": {
+      "type": "string",
+      "value": "[variables('storageAccountName')]"
+    },
+    "storageAccountKey": {
+      "type": "string",
+      "value": "[listKeys(resourceId(resourceGroup().name,'Microsoft.Storage/storageAccounts', variables('storageAccountName')), '2019-04-01').keys[0].value]"
     }
   }
 }

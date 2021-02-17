@@ -5,7 +5,9 @@
     "containerName": "warehouse-db",
     "containerImage": "mcr.microsoft.com/mssql/server:2019-latest",
     "containerInstanceName": "[concat(parameters('environment'), '-', parameters('containerInstanceName'))]",
-    "containerDnsName": "[concat(parameters('environment'), '-', parameters('containerDnsName'))]"
+    "containerDnsName": "[concat(parameters('environment'), '-', parameters('containerDnsName'))]",
+    "containerFileShareVolumeName": "databasefilesharevolume",
+    "containerFileShareVolumeMountPath": "[concat('/aci/', parameters('fileShareVolumeName'))]"
   },
   "parameters": {
     "environment": {
@@ -47,6 +49,24 @@
       "type": "securestring",
       "metadata": {
         "description": "Password of the SQL login that is to be used by the File Processor application for connecting to the warehouse database"
+      }
+    },
+    "fileShareStorageAccountName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of storage account containing the file share that the container is to mount for permanent storage of database files"
+      }
+    },
+    "fileShareVolumeName": {
+      "type": "string",
+      "metadata": {
+        "description": "Name of file share volume to be mounted to the container for permanent storage of database files"
+      }
+    },
+    "fileShareStorageAccountKey": {
+      "type": "securestring",
+      "metadata": {
+        "description": "Storage account key the container should use for mounting the file share database files will be stored in"
       }
     }
   },
@@ -90,6 +110,12 @@
                   "name": "MSSQL_COLLATION",
                   "value": "Latin1_General_CI_AS"
                 }
+              ],
+              "volumeMounts": [
+                {
+                  "name": "[variables('containerFileShareVolumeName')]",
+                  "mountPath": "[variables('containerFileShareVolumeMountPath')]"
+                }
               ]
             }
           }
@@ -104,7 +130,17 @@
             }
           ],
           "dnsNameLabel": "[variables('containerDnsName')]"
-        }
+        },
+        "volumes": [
+          {
+            "name": "[variables('containerFileShareVolumeName')]",
+            "azureFile": {
+              "shareName": "databaseacishare",
+              "storageAccountName": "[parameters('fileShareStorageAccountName')]",
+              "storageAccountKey": "[parameters('fileShareStorageAccountKey')]"
+            }
+          }
+        ]
       }
     }
   ],
@@ -128,6 +164,10 @@
     "dbConnectionString": {
       "type": "string",
       "value": "[concat('Server=', reference(resourceId('Microsoft.ContainerInstance/containerGroups/', variables('containerInstanceName'))).ipAddress.fqdn, ';Database=warehousedb;User ID=', parameters('dbUsername'), ';Password=', parameters('dbPassword'))]"
+    },
+    "containerFileShareVolumeMountPath": {
+      "type": "string",
+      "value": "[variables('containerFileShareVolumeMountPath')]"
     }
   }
 }
