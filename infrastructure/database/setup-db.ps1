@@ -76,10 +76,10 @@ $query = @"
     CREATE USER [$($AppDbUsername)] FOR LOGIN [$($AppDbUsername)];
     GO
 
-    ALTER ROLE db_datareader ADD MEMBER warehouse_user;
+    ALTER ROLE db_datareader ADD MEMBER [$($AppDbUsername)];
     GO
 
-    ALTER ROLE db_datawriter ADD MEMBER warehouse_user;
+    ALTER ROLE db_datawriter ADD MEMBER [$($AppDbUsername)];
     GO
 "@
 
