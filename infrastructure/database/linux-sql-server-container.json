@@ -135,7 +135,7 @@
           {
             "name": "[variables('containerFileShareVolumeName')]",
             "azureFile": {
-              "shareName": "databaseacishare",
+              "shareName": "[parameters('fileShareVolumeName')]",
               "storageAccountName": "[parameters('fileShareStorageAccountName')]",
               "storageAccountKey": "[parameters('fileShareStorageAccountKey')]"
             }
