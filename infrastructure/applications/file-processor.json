@@ -120,7 +120,8 @@
             "password": "[parameters('imageRegistryPassword')]"
           }
         ],
-        "osType": "Linux"
+        "osType": "Linux",
+        "restartPolicy": "OnFailure"
       }
     }
   ],
