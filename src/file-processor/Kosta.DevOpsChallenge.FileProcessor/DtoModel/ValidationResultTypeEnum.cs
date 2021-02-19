@@ -22,7 +22,7 @@ namespace Kosta.DevOpsChallenge.FileProcessor.DtoModel
 
             if (validationResult == ValidationResultTypeEnum.Success)
             {
-                return $"{headerFirstLine}\r\n{headerSuccessLine}";
+                return $"{headerFirstLine}\r\n{headerSuccessLine}\r\n";
             }
 
             return $"{headerFirstLine}\r\n{headerErrorLine}\r\n";
