@@ -81,7 +81,10 @@ else {
 # Create database and assign database user to the SQL login previously created
 Write-Host "Creating database $($AppDbName) and database user $($AppDbUsername)..."
 $query = @"
-    CREATE DATABASE [$($AppDbName)];
+    IF NOT EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE ('[' + name + ']' = '$($AppDbName)' OR name = '$($AppDbName)'))
+    BEGIN
+        CREATE DATABASE [$($AppDbName)]
+    END;
     GO
 
     USE [$($AppDbName)];
