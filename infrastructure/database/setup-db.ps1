@@ -10,6 +10,10 @@ param (
 
     [Parameter(Mandatory = $true)]
     [ValidateNotNullOrEmpty()]
+    [string]$AppDbFolderPath,
+
+    [Parameter(Mandatory = $true)]
+    [ValidateNotNullOrEmpty()]
     [string]$AppDbName,
 
     [Parameter(Mandatory = $true)]
@@ -81,9 +85,16 @@ else {
 # Create database and assign database user to the SQL login previously created
 Write-Host "Creating database $($AppDbName) and database user $($AppDbUsername)..."
 $query = @"
-    IF NOT EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE ('[' + name + ']' = '$($AppDbName)' OR name = '$($AppDbName)'))
+    IF EXISTS (SELECT name FROM master.dbo.sysdatabases WHERE ('[' + name + ']' = '$($AppDbName)' OR name = '$($AppDbName)'))
     BEGIN
         CREATE DATABASE [$($AppDbName)]
+        ON PRIMARY (NAME = N'$($AppDbName)_Data', FILENAME = '$($AppDbFolderPath)/$($AppDbName)_Data.mdf')
+        LOG ON (NAME = N'$($AppDbName)_Log', FILENAME = '$($AppDbFolderPath)/$($AppDbName)_Log.ldf')
+        FOR ATTACH
+    ELSE
+        CREATE DATABASE [$($AppDbName)]
+        ON PRIMARY (NAME = N'$($AppDbName)_Data', FILENAME = '$($AppDbFolderPath)/$($AppDbName)_Data.mdf')
+        LOG ON (NAME = N'$($AppDbName)_Log', FILENAME = '$($AppDbFolderPath)/$($AppDbName)_Log.ldf')
     END;
     GO
 

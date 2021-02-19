@@ -111,8 +111,9 @@ $stackDeployResult = New-AzResourceGroupDeployment -ResourceGroupName $DeployToR
 # Deploy the database schema and provision the login to be used by the application
 Write-Host "Deploying database schema and setting up application login in SQL Server container instance $($deployedDbContainerInstanceName)..." -ForegroundColor Green
 $sqlServerFqdn = $stackDeployResult.Outputs.databaseContainerIPAddressFqdn.value
+$appDbFolderPath = $stackDeployResult.Outputs.databaseContainerFileShareVolumeMountPath.value
 $setupScriptFile = Join-Path -Path $PSScriptRoot -ChildPath "database/setup-db.ps1"
-& $setupScriptFile -SqlServerInstance $sqlServerFqdn -SaPassword $SqlServerSaPassword `
+& $setupScriptFile -SqlServerInstance $sqlServerFqdn -SaPassword $SqlServerSaPassword -AppDbFolderPath $appDbFolderPath `
     -AppDbName warehousedb -AppDbUsername $FileProcessorAppDbUsername -AppDbPassword $FileProcessorAppDbPassword
 
 Write-Host "Environment '$($Environment)' successfully provisioned!" -ForegroundColor Green
