@@ -91,7 +91,9 @@ $query = @"
         ON PRIMARY (NAME = N'$($AppDbName)_Data', FILENAME = '$($AppDbFolderPath)/$($AppDbName)_Data.mdf')
         LOG ON (NAME = N'$($AppDbName)_Log', FILENAME = '$($AppDbFolderPath)/$($AppDbName)_Log.ldf')
         FOR ATTACH
+    END
     ELSE
+    BEGIN
         CREATE DATABASE [$($AppDbName)]
         ON PRIMARY (NAME = N'$($AppDbName)_Data', FILENAME = '$($AppDbFolderPath)/$($AppDbName)_Data.mdf')
         LOG ON (NAME = N'$($AppDbName)_Log', FILENAME = '$($AppDbFolderPath)/$($AppDbName)_Log.ldf')
